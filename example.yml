@@ -1,0 +1,44 @@
+---
+
+- name: Ansible Example YML File
+  hosts: default
+  become: true
+
+  tasks:
+    - name: Import Zulu RPM GPG Key
+      rpm_key:
+        state: present
+        key: http://repos.azulsystems.com/RPM-GPG-KEY-azulsystems
+    
+    - name: Download Zulu Repo RPM
+      get_url:
+        url: http://repos.azulsystems.com/rhel/zulu.repo
+        dest: /etc/yum.repos.d/zulu.repo
+
+    - name: Patch System
+      yum: name=* state=latest
+
+    - name: Install Base Software Requirements
+      yum:
+        name: 
+          - epel-release
+          - git
+          - vim
+          - wget
+          - zulu-8
+          - python-pip
+        state: present
+
+    - name: add group "tomcat"
+      group: name=tomcat
+
+    - name: add user "tomcat"
+      user: name=tomcat group=tomcat home=/usr/share/tomcat createhome=no
+      become: True
+      become_method: sudo
+
+    - name: Download Tomcat
+      get_url: url=https://archive.apache.org/dist/tomcat/tomcat-8/v8.5.41/bin/apache-tomcat-8.5.41.tar.gz dest=/opt/apache-tomcat.tar.gz
+
+    - name: Extract archive
+      command: chdir=/usr/share /bin/tar xvf /opt/apache-tomcat.tar.gz -C /opt/ creates=/opt/tomcat-deva-pc9
